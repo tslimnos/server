@@ -28,7 +28,6 @@ namespace OC\Core\Controller;
 
 use OC\KnownUser\KnownUserService;
 use OC\Profile\ProfileManager;
-use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
@@ -41,25 +40,15 @@ use OCP\Share\IManager as IShareManager;
 use OCP\UserStatus\IManager as IUserStatusManager;
 
 class ProfilePageController extends Controller {
-	use \OC\Profile\TProfileHelper;
 
 	/** @var IInitialState */
 	private $initialStateService;
-
-	/** @var IAccountManager */
-	private $accountManager;
 
 	/** @var ProfileManager */
 	private $profileManager;
 
 	/** @var IShareManager */
 	private $shareManager;
-
-	/** @var IGroupManager */
-	private $groupManager;
-
-	/** @var KnownUserService */
-	private $knownUserService;
 
 	/** @var IUserManager */
 	private $userManager;
@@ -74,7 +63,6 @@ class ProfilePageController extends Controller {
 		$appName,
 		IRequest $request,
 		IInitialState $initialStateService,
-		IAccountManager $accountManager,
 		ProfileManager $profileManager,
 		IShareManager $shareManager,
 		IGroupManager $groupManager,
@@ -85,7 +73,6 @@ class ProfilePageController extends Controller {
 	) {
 		parent::__construct($appName, $request);
 		$this->initialStateService = $initialStateService;
-		$this->accountManager = $accountManager;
 		$this->profileManager = $profileManager;
 		$this->shareManager = $shareManager;
 		$this->groupManager = $groupManager;

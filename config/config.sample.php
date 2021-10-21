@@ -2022,4 +2022,14 @@ $CONFIG = [
  * Also, it might log sensitive data into a plain text file.
  */
 'ldap_log_file' => '',
+
+
+/**
+ * Globally enable/disable the profile feature
+ *
+ * When globally enabled, users may individually enable/disable their profiles
+ *
+ * Defaults to ``true``
+ */
+'profile.enabled' => true,
 ];

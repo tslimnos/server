@@ -238,18 +238,20 @@ script('settings', [
 				<input type="hidden" id="twitterscope" value="<?php p($_['twitterScope']) ?>">
 			</form>
 		</div>
-		<div class="personal-settings-setting-box">
-			<div id="vue-organisation-section"></div>
-		</div>
-		<div class="personal-settings-setting-box">
-			<div id="vue-role-section"></div>
-		</div>
-		<div class="personal-settings-setting-box">
-			<div id="vue-headline-section"></div>
-		</div>
-		<div class="personal-settings-setting-box">
-			<div id="vue-biography-section"></div>
-		</div>
+		<?php if ($_['globalProfileEnabled']) : ?>
+			<div class="personal-settings-setting-box">
+				<div id="vue-organisation-section"></div>
+			</div>
+			<div class="personal-settings-setting-box">
+				<div id="vue-role-section"></div>
+			</div>
+			<div class="personal-settings-setting-box">
+				<div id="vue-headline-section"></div>
+			</div>
+			<div class="personal-settings-setting-box">
+				<div id="vue-biography-section"></div>
+			</div>
+		<?php endif; ?>
 	</div>
 
 	<div class="profile-settings-container">

@@ -56,7 +56,6 @@ use OCP\Notification\IManager;
 use OCP\Settings\ISettings;
 
 class PersonalInfo implements ISettings {
-	use \OC\Profile\TProfileHelper;
 
 	/** @var IConfig */
 	private $config;
@@ -166,7 +165,8 @@ class PersonalInfo implements ISettings {
 			'twitterScope' => $account->getProperty(IAccountManager::PROPERTY_TWITTER)->getScope(),
 			'twitterVerification' => $account->getProperty(IAccountManager::PROPERTY_TWITTER)->getVerified(),
 			'groups' => $this->getGroups($user),
-			'isFairUseOfFreePushService' => $this->isFairUseOfFreePushService()
+			'isFairUseOfFreePushService' => $this->isFairUseOfFreePushService(),
+			'globalProfileEnabled' => $this->profileManager->isProfileEnabled(),
 		] + $messageParameters + $languageParameters + $localeParameters;
 
 		$personalInfoParameters = [
@@ -174,7 +174,8 @@ class PersonalInfo implements ISettings {
 			'displayNameMap' => $this->getDisplayNameMap($account),
 			'emailMap' => $this->getEmailMap($account),
 			'languageMap' => $this->getLanguageMap($user),
-			'profileEnabled' => $this->isProfileEnabled($account),
+			'globalProfileEnabled' => $this->profileManager->isProfileEnabled(),
+			'profileEnabled' => $this->profileManager->isProfileEnabled($user),
 			'organisationMap' => $this->getOrganisationMap($account),
 			'roleMap' => $this->getRoleMap($account),
 			'headlineMap' => $this->getHeadlineMap($account),

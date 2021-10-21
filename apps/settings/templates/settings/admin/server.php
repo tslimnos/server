@@ -112,3 +112,5 @@
 		</fieldset>
 	</form>
 </div>
+
+<div class="vue-global-profile-settings"></div>
