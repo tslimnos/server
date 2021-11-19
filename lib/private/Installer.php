@@ -632,8 +632,6 @@ class Installer {
 
 		OC_App::executeRepairSteps($app, $info['repair-steps']['install']);
 
-		$config = \OC::$server->getConfig();
-
 		$config->setAppValue($app, 'installed_version', OC_App::getAppVersion($app));
 		if (array_key_exists('ocsid', $info)) {
 			$config->setAppValue($app, 'ocsid', $info['ocsid']);
