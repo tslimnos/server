@@ -63,6 +63,7 @@ use OCA\DAV\Events\CalendarUpdatedEvent;
 use OCA\DAV\Events\SubscriptionCreatedEvent;
 use OCA\DAV\Events\SubscriptionDeletedEvent;
 use OCA\DAV\Events\SubscriptionUpdatedEvent;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
@@ -1120,7 +1121,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 *
 	 * @param string $principalUri
 	 * @return array
-	 * @throws \OCP\DB\Exception
+	 * @throws Exception
 	 */
 	public function getDeletedCalendarObjectsByPrincipal(string $principalUri): array {
 		$query = $this->db->getQueryBuilder();
@@ -1412,6 +1413,49 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 
 		return '"' . $extraData['etag'] . '"';
 	}
+
+	/**
+	 * Moves a calendar object from calendar to calendar.
+	 *
+	 * @param int $sourceCalendarId
+	 * @param int $targetCalendarId
+	 * @param int $objectId
+	 * @param string $principalUri
+	 * @param int $calendarType
+	 * @throws Exception
+	 */
+	public function moveCalendarObject(int $sourceCalendarId, int $targetCalendarId, int $objectId, string $principalUri, int $calendarType = self::CALENDAR_TYPE_CALENDAR): bool {
+		$object = $this->getCalendarObjectById($principalUri, $objectId);
+		if (empty($object)) {
+			return false;
+		}
+
+		$query = $this->db->getQueryBuilder();
+		$query->update('calendarobjects')
+			->set('calendarid', $query->createNamedParameter($targetCalendarId))
+			->where($query->expr()->eq('id', $query->createNamedParameter($objectId)))
+			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)))
+			->executeStatement();
+
+		$this->purgeProperties($sourceCalendarId, $objectId);
+		$this->updateProperties($targetCalendarId, $object['uri'], $object['calendardata'], $calendarType);
+
+		$this->addChange($sourceCalendarId, $object['uri'], 1, $calendarType);
+		$this->addChange($targetCalendarId, $object['uri'], 3, $calendarType);
+
+		$object = $this->getCalendarObjectById($principalUri, $objectId);
+		if (empty($object)) {
+			return false;
+		}
+
+		if ($calendarType === self::CALENDAR_TYPE_CALENDAR) {
+			$calendarRow = $this->getCalendarById($targetCalendarId);
+			$shares = $this->getShares($targetCalendarId);
+			$this->dispatcher->dispatchTyped(new CalendarObjectUpdatedEvent($targetCalendarId, $calendarRow, $shares, $object));
+		}
+		return true;
+	}
+
 
 	/**
 	 * @param int $calendarObjectId

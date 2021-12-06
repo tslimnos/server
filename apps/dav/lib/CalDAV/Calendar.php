@@ -33,11 +33,14 @@ use DateTimeInterface;
 use OCA\DAV\CalDAV\Trashbin\Plugin as TrashbinPlugin;
 use OCA\DAV\DAV\Sharing\IShareable;
 use OCA\DAV\Exception\UnsupportedLimitOnInitialSyncException;
+use OCP\DB\Exception;
 use OCP\IConfig;
 use OCP\IL10N;
 use Sabre\CalDAV\Backend\BackendInterface;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
+use Sabre\DAV\IMoveTarget;
+use Sabre\DAV\INode;
 use Sabre\DAV\PropPatch;
 
 /**
@@ -46,7 +49,7 @@ use Sabre\DAV\PropPatch;
  * @package OCA\DAV\CalDAV
  * @property CalDavBackend $caldavBackend
  */
-class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable {
+class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable, IMoveTarget {
 
 	/** @var IConfig */
 	private $config;
@@ -421,5 +424,18 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 
 	public function disableTrashbin(): void {
 		$this->useTrashbin = false;
+	}
+
+	public function moveInto($targetName, $sourcePath, INode $sourceNode) {
+		if (!($sourceNode instanceof CalendarObject)) {
+			return false;
+		}
+
+		try {
+			$result = $this->caldavBackend->moveCalendarObject($sourceNode->getCalendarId(), (int)$this->calendarInfo['id'], $sourceNode->getId(), $sourceNode->getPrincipalUri());
+		} catch (Exception $e) {
+			return false;
+		}
+		return $result;
 	}
 }
