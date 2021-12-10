@@ -639,6 +639,17 @@ class AccountManager implements IAccountManager {
 	}
 
 	/**
+	 * @inheritDoc
+	 */
+	public function isProfileDefaultEnabled(): ?bool {
+		return filter_var(
+			$this->config->getAppValue('settings', 'profile_default_enabled', '1'),
+			FILTER_VALIDATE_BOOLEAN,
+			FILTER_NULL_ON_FAILURE,
+		);
+	}
+
+	/**
 	 * build default user record in case not data set exists yet
 	 *
 	 * @param IUser $user
@@ -719,7 +730,7 @@ class AccountManager implements IAccountManager {
 
 			[
 				'name' => self::PROPERTY_PROFILE_ENABLED,
-				'value' => '1',
+				'value' => $this->isProfileDefaultEnabled(),
 			],
 		];
 	}

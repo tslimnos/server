@@ -25,7 +25,10 @@
  */
 namespace OCA\Settings\Settings\Admin;
 
+use OC\Profile\ProfileManager;
+use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -36,6 +39,12 @@ class Server implements IDelegatedSettings {
 
 	/** @var IDBConnection */
 	private $connection;
+	/** @var IAccountManager */
+	private $accountManager;
+	/** @var IInitialState */
+	private $initialStateService;
+	/** @var ProfileManager */
+	private $profileManager;
 	/** @var ITimeFactory */
 	private $timeFactory;
 	/** @var IConfig */
@@ -44,10 +53,16 @@ class Server implements IDelegatedSettings {
 	private $l;
 
 	public function __construct(IDBConnection $connection,
+								IAccountManager $accountManager,
+								IInitialState $initialStateService,
+								ProfileManager $profileManager,
 								ITimeFactory $timeFactory,
 								IConfig $config,
 								IL10N $l) {
 		$this->connection = $connection;
+		$this->accountManager = $accountManager;
+		$this->initialStateService = $initialStateService;
+		$this->profileManager = $profileManager;
 		$this->timeFactory = $timeFactory;
 		$this->config = $config;
 		$this->l = $l;
@@ -65,7 +80,13 @@ class Server implements IDelegatedSettings {
 			'cronErrors' => $this->config->getAppValue('core', 'cronErrors'),
 			'cli_based_cron_possible' => function_exists('posix_getpwuid'),
 			'cli_based_cron_user' => function_exists('posix_getpwuid') ? posix_getpwuid(fileowner(\OC::$configDir . 'config.php'))['name'] : '',
+			'globalProfileEnabled' => $this->profileManager->isProfileEnabled(),
 		];
+
+		$this->initialStateService->provideInitialState('globalProfileEnabled', $this->profileManager->isProfileEnabled());
+		$this->initialStateService->provideInitialState('profileSettings', [
+			'profileDefaultEnabled' => $this->accountManager->isProfileDefaultEnabled(),
+		]);
 
 		return new TemplateResponse('settings', 'settings/admin/server', $parameters, '');
 	}

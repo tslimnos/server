@@ -712,12 +712,59 @@ class UsersController extends AUserData {
 		return new DataResponse();
 	}
 
+	// TODO think about alternative way to edit all users
+
+	/**
+	 * @PasswordConfirmationRequired
+	 *
+	 * edit all users
+	 *
+	 * @param string $key
+	 * @param string $value
+	 * @return DataResponse
+	 * @throws OCSException
+	 */
+	public function editAllUsers(string $key, string $value): DataResponse {
+		$currentLoggedInUser = $this->userSession->getUser();
+
+		$handleUserCallback = function (IUser $user) use ($key, $value) {
+			$permittedFields = [
+				IAccountManager::PROPERTY_PROFILE_ENABLED,
+			];
+			// Check if permitted to edit this field
+			if (!in_array($key, $permittedFields)) {
+				throw new OCSException('', 103);
+			}
+
+			switch ($key) {
+				case IAccountManager::PROPERTY_PROFILE_ENABLED:
+					$userAccount = $this->accountManager->getAccount($user);
+					try {
+						$userProperty = $userAccount->getProperty($key);
+						if ($userProperty->getValue() !== $value) {
+							$userProperty->setValue($value);
+						}
+					} catch (PropertyDoesNotExistException $e) {
+						$userAccount->setProperty($key, $value, IAccountManager::SCOPE_LOCAL, IAccountManager::NOT_VERIFIED);
+					}
+					$this->accountManager->updateAccount($userAccount);
+					break;
+			}
+
+			return true;
+		};
+
+		$this->userManager->callForAllUsers($handleUserCallback);
+
+		return new DataResponse();
+	}
+
 	/**
 	 * @NoAdminRequired
 	 * @NoSubAdminRequired
 	 * @PasswordConfirmationRequired
 	 *
-	 * edit users
+	 * edit a user
 	 *
 	 * @param string $userId
 	 * @param string $key

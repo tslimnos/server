@@ -45,3 +45,40 @@ export const saveProfileParameterVisibility = async(paramId, visibility) => {
 
 	return res.data
 }
+
+/**
+ * Save the default profile enabled state
+ *
+ * @param {string} isEnabled the default state
+ * @param {string} forceChangeExistingUsers whether to force change this setting for existing users
+ * @returns {object}
+ */
+export const saveDefaultEnableProfile = async(isEnabled, forceChangeExistingUsers) => {
+	// TODO allow boolean values on backend route handler
+	// Convert boolean to string for compatibility
+	if (typeof isEnabled === 'boolean') {
+		isEnabled = isEnabled ? '1' : '0'
+	}
+
+	const url = forceChangeExistingUsers
+		// TODO test v2
+		// TODO create route handler to force change existing users
+		? generateOcsUrl(
+			'/apps/provisioning_api/api/v2/config/apps/{appId}/{key}', {
+				appId: 'settings',
+				key: 'profile_default_enabled',
+			})
+		: generateOcsUrl(
+			'/apps/provisioning_api/api/v2/config/apps/{appId}/{key}', {
+				appId: 'settings',
+				key: 'profile_default_enabled',
+			})
+
+	await confirmPassword()
+
+	const res = await axios.post(url, {
+		value: isEnabled,
+	})
+
+	return res.data
+}

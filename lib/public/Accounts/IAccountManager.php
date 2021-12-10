@@ -161,4 +161,9 @@ interface IAccountManager {
 	 * @since 21.0.0
 	 */
 	public function searchUsers(string $property, array $values): array;
+
+	/**
+	 * Return whether profile is enabled by default
+	 */
+	public function isProfileDefaultEnabled(): ?bool;
 }
