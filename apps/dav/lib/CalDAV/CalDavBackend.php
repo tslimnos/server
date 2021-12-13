@@ -1448,8 +1448,12 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			return false;
 		}
 
+		$calendarRow = $this->getCalendarById($targetCalendarId);
+		if(empty($calendarRow)) {
+			return false;
+		}
+
 		if ($calendarType === self::CALENDAR_TYPE_CALENDAR) {
-			$calendarRow = $this->getCalendarById($targetCalendarId);
 			$shares = $this->getShares($targetCalendarId);
 			$this->dispatcher->dispatchTyped(new CalendarObjectUpdatedEvent($targetCalendarId, $calendarRow, $shares, $object));
 		}

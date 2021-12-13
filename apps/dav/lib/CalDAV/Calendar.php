@@ -36,6 +36,7 @@ use OCA\DAV\Exception\UnsupportedLimitOnInitialSyncException;
 use OCP\DB\Exception;
 use OCP\IConfig;
 use OCP\IL10N;
+use Psr\Log\LoggerInterface;
 use Sabre\CalDAV\Backend\BackendInterface;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
@@ -60,6 +61,9 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 	/** @var bool */
 	private $useTrashbin = true;
 
+	/** @var LoggerInterface */
+	private $logger;
+
 	/**
 	 * Calendar constructor.
 	 *
@@ -68,7 +72,7 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 	 * @param IL10N $l10n
 	 * @param IConfig $config
 	 */
-	public function __construct(BackendInterface $caldavBackend, $calendarInfo, IL10N $l10n, IConfig $config) {
+	public function __construct(BackendInterface $caldavBackend, $calendarInfo, IL10N $l10n, IConfig $config, LoggerInterface $logger) {
 		// Convert deletion date to ISO8601 string
 		if (isset($calendarInfo[TrashbinPlugin::PROPERTY_DELETED_AT])) {
 			$calendarInfo[TrashbinPlugin::PROPERTY_DELETED_AT] = (new DateTimeImmutable())
@@ -88,6 +92,7 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 
 		$this->config = $config;
 		$this->l10n = $l10n;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -434,6 +439,7 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 		try {
 			$result = $this->caldavBackend->moveCalendarObject($sourceNode->getCalendarId(), (int)$this->calendarInfo['id'], $sourceNode->getId(), $sourceNode->getPrincipalUri());
 		} catch (Exception $e) {
+			$this->logger->error('Could not move calendar object: ' . $e->getMessage(), ['excption' => $e]);
 			return false;
 		}
 		return $result;
