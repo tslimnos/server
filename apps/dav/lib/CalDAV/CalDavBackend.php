@@ -1449,7 +1449,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		}
 
 		$calendarRow = $this->getCalendarById($targetCalendarId);
-		if(empty($calendarRow)) {
+		if (empty($calendarRow)) {
 			return false;
 		}
 
