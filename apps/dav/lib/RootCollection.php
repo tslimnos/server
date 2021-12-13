@@ -55,7 +55,7 @@ class RootCollection extends SimpleCollection {
 		$l10n = \OC::$server->getL10N('dav');
 		$random = \OC::$server->getSecureRandom();
 		$logger = \OC::$server->getLogger();
-		$psrLogger = \Oc::$server->get(LoggerInterface::class);
+		$psrLogger = \OC::$server->get(LoggerInterface::class);
 		$userManager = \OC::$server->getUserManager();
 		$userSession = \OC::$server->getUserSession();
 		$groupManager = \OC::$server->getGroupManager();
