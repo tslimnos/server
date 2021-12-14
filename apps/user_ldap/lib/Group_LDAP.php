@@ -57,9 +57,9 @@ class Group_LDAP extends BackendUtility implements GroupInterface, IGroupLDAP, I
 
 	/** @var string[][] $cachedGroupMembers array of users with gid as key */
 	protected $cachedGroupMembers;
-	/** @var string[][] $cachedGroupsByMember array of groups with uid as key */
+	/** @var array[][] $cachedGroupsByMember array of groups with uid as key */
 	protected $cachedGroupsByMember;
-	/** @var string[] $cachedNestedGroups array of groups with gid (DN) as key */
+	/** @var string[][] $cachedNestedGroups array of groups with gid (DN) as key */
 	protected $cachedNestedGroups;
 	/** @var GroupPluginManager */
 	protected $groupPluginManager;
@@ -788,6 +788,7 @@ class Group_LDAP extends BackendUtility implements GroupInterface, IGroupLDAP, I
 	}
 
 	/**
+	 * @return array[]
 	 * @throws ServerNotAvailableException
 	 */
 	private function getGroupsByMember(string $dn, array &$seen = []): array {
