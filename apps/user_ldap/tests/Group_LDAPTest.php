@@ -953,6 +953,8 @@ class Group_LDAPTest extends TestCase {
 						return 'member';
 					case 'ldapGroupFilter':
 						return $groupFilter;
+					case 'ldapGroupDisplayName':
+						return 'cn';
 				}
 				return 1;
 			});
@@ -984,7 +986,7 @@ class Group_LDAPTest extends TestCase {
 			'dn' => ['cn=group2,ou=groups,dc=domain,dc=com'],
 		];
 
-		$access->expects($this->once())
+		$access->expects($this->any())
 			->method('nextcloudGroupNames')
 			->with([$group1, $group2])
 			->willReturn(['group1', 'group2']);
