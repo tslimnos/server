@@ -138,10 +138,13 @@ class ImageTest extends \Test\TestCase {
 		$this->assertEquals($expected, $img->data());
 
 		$config = $this->createMock(IConfig::class);
-		$config->expects($this->once())
+		$config->expects($this->exactly(2))
 			->method('getAppValue')
-			->with('preview', 'jpeg_quality', 90)
-			->willReturn(null);
+			->withConsecutive(
+				[$this->equalTo('preview'), $this->equalTo('memory_limit'), $this->equalTo('134217728')],
+				[$this->equalTo('preview'), $this->equalTo('jpeg_quality'), $this->equalTo(90)],
+			)
+			->will($this->onConsecutiveCalls('134217728', null));
 		$img = new \OC_Image(null, null, $config);
 		$img->loadFromFile(OC::$SERVERROOT.'/tests/data/testimage.jpg');
 		$raw = imagecreatefromstring(file_get_contents(OC::$SERVERROOT.'/tests/data/testimage.jpg'));
@@ -362,5 +365,18 @@ class ImageTest extends \Test\TestCase {
 
 		$img->save($tempFile, $mimeType);
 		$this->assertEquals($mimeType, image_type_to_mime_type(exif_imagetype($tempFile)));
+	}
+
+	public function testMemoryLimitFromFile() {
+		$img = new \OC_Image();
+		$img->loadFromFile(OC::$SERVERROOT.'/tests/data/testimage-badheader.jpg');
+		$this->assertFalse($img->valid());
+	}
+
+	public function testMemoryLimitFromData() {
+		$data = file_get_contents(OC::$SERVERROOT.'/tests/data/testimage-badheader.jpg');
+		$img = new \OC_Image();
+		$img->loadFromData($data);
+		$this->assertFalse($img->valid());
 	}
 }
