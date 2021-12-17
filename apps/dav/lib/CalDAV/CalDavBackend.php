@@ -2491,12 +2491,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 
 		$subscriptionRow = $this->getSubscriptionById($subscriptionId);
 		$this->dispatcher->dispatchTyped(new SubscriptionCreatedEvent($subscriptionId, $subscriptionRow));
-		$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::createSubscription', new GenericEvent(
-			'\OCA\DAV\CalDAV\CalDavBackend::createSubscription',
-			[
-				'subscriptionId' => $subscriptionId,
-				'subscriptionData' => $subscriptionRow,
-			]));
 
 		return $subscriptionId;
 	}
@@ -2564,13 +2558,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 */
 	public function deleteSubscription($subscriptionId) {
 		$subscriptionRow = $this->getSubscriptionById($subscriptionId);
-
-		$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::deleteSubscription', new GenericEvent(
-			'\OCA\DAV\CalDAV\CalDavBackend::deleteSubscription',
-			[
-				'subscriptionId' => $subscriptionId,
-				'subscriptionData' => $this->getSubscriptionById($subscriptionId),
-			]));
 
 		$query = $this->db->getQueryBuilder();
 		$query->delete('calendarsubscriptions')
