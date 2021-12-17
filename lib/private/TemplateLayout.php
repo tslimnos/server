@@ -95,7 +95,9 @@ class TemplateLayout extends \OC_Template {
 			}
 
 			$this->initialState->provideInitialState('core', 'active-app', $this->navigationManager->getActiveEntry());
-			$this->initialState->provideInitialState('unified-search', 'limit-default', SearchQuery::LIMIT_DEFAULT);
+			$this->initialState->provideInitialState('unified-search', 'limit-default', (int)$this->config->getAppValue('core', 'unified-search.limit-default', (string)SearchQuery::LIMIT_DEFAULT));
+			$this->initialState->provideInitialState('unified-search', 'min-search-length', (int)$this->config->getAppValue('core', 'unified-search.min-search-length', (string)2));
+			$this->initialState->provideInitialState('unified-search', 'type-ahead', $this->config->getAppValue('core', 'unified-search.type-ahead', 'yes') === 'yes');
 			Util::addScript('core', 'dist/unified-search', 'core');
 
 			// Add navigation entry
