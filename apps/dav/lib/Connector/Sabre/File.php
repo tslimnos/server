@@ -52,6 +52,7 @@ use OCP\Files\EntityTooLargeException;
 use OCP\Files\FileInfo;
 use OCP\Files\ForbiddenException;
 use OCP\Files\GenericFileException;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\InvalidContentException;
 use OCP\Files\InvalidPathException;
 use OCP\Files\LockNotAcquiredException;
@@ -59,7 +60,9 @@ use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\Storage;
 use OCP\Files\StorageNotAvailableException;
+use OCP\IConfig;
 use OCP\ILogger;
+use OCP\IRequest;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
 use OCP\Share\IManager;
@@ -88,7 +91,7 @@ class File extends Node implements IFile {
 		if (isset($request)) {
 			$this->request = $request;
 		} else {
-			$this->request = \OC::$server->getRequest();
+			$this->request = \OC::$server->get(IRequest::class);
 		}
 	}
 
@@ -357,7 +360,7 @@ class File extends Node implements IFile {
 	}
 
 	private function getPartFileBasePath($path) {
-		$partFileInStorage = \OC::$server->getConfig()->getSystemValue('part_file_in_storage', true);
+		$partFileInStorage = \OC::$server->get(IConfig::class)->getSystemValue('part_file_in_storage', true);
 		if ($partFileInStorage) {
 			return $path;
 		} else {
@@ -489,7 +492,7 @@ class File extends Node implements IFile {
 		if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'PROPFIND') {
 			return $mimeType;
 		}
-		return \OC::$server->getMimeTypeDetector()->getSecureMimeType($mimeType);
+		return \OC::$server->get(IMimeTypeDetector::class)->getSecureMimeType($mimeType);
 	}
 
 	/**
