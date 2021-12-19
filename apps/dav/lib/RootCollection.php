@@ -59,13 +59,14 @@ use OCP\Security\ISecureRandom;
 use OCP\Share\IManager;
 use OCP\SystemTag\ISystemTagManager;
 use OCP\SystemTag\ISystemTagObjectMapper;
+use Psr\Log\LoggerInterface;
 use Sabre\DAV\SimpleCollection;
 
 class RootCollection extends SimpleCollection {
 	public function __construct() {
 		$l10n = \OC::$server->get(IFactory::class)->get('dav');
 		$random = \OC::$server->get(ISecureRandom::class);
-		$logger = \OC::$server->getLogger();
+		$logger = \OC::$server->get(LoggerInterface::class);
 		$userManager = \OC::$server->get(IUserManager::class);
 		$userSession = \OC::$server->get(IUserSession::class);
 		$groupManager = \OC::$server->get(IGroupManager::class);
@@ -145,7 +146,7 @@ class RootCollection extends SimpleCollection {
 			$userManager,
 			\OC::$server->get(IUserSession::class),
 			\OC::$server->get(\OC\EventDispatcher\SymfonyAdapter::class),
-			\OC::$server->getLogger()
+			\OC::$server->get(LoggerInterface::class)
 		);
 
 		$pluginManager = new PluginManager(\OC::$server, \OC::$server->get(IAppManager::class));

@@ -68,10 +68,10 @@ use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IGroupManager;
-use OCP\ILogger;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\ISecureRandom;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Sabre\CalDAV\Backend\AbstractBackend;
 use Sabre\CalDAV\Backend\SchedulingSupport;
@@ -216,7 +216,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	/** @var ISecureRandom */
 	private $random;
 
-	/** @var ILogger */
+	/** @var LoggerInterface */
 	private $logger;
 
 	/** @var IEventDispatcher */
@@ -239,7 +239,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 * @param IUserManager $userManager
 	 * @param IGroupManager $groupManager
 	 * @param ISecureRandom $random
-	 * @param ILogger $logger
+	 * @param LoggerInterface $logger
 	 * @param IEventDispatcher $dispatcher
 	 * @param bool $legacyEndpoint
 	 */
@@ -248,7 +248,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 								IUserManager $userManager,
 								IGroupManager $groupManager,
 								ISecureRandom $random,
-								ILogger $logger,
+								LoggerInterface $logger,
 								IEventDispatcher $dispatcher,
 								IConfig $config,
 								bool $legacyEndpoint = false) {
@@ -1654,15 +1654,15 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				try {
 					$matches = $this->validateFilterForObject($row, $filters);
 				} catch (ParseException $ex) {
-					$this->logger->logException($ex, [
+					$this->logger->error('Caught parsing exception for calendar data. This usually indicates invalid calendar data. calendar-id:'.$calendarId.' uri:'.$row['uri'], [
 						'app' => 'dav',
-						'message' => 'Caught parsing exception for calendar data. This usually indicates invalid calendar data. calendar-id:'.$calendarId.' uri:'.$row['uri']
+						'exception' => $ex
 					]);
 					continue;
 				} catch (InvalidDataException $ex) {
-					$this->logger->logException($ex, [
+					$this->logger->error('Caught invalid data exception for calendar data. This usually indicates invalid calendar data. calendar-id:'.$calendarId.' uri:'.$row['uri'], [
 						'app' => 'dav',
-						'message' => 'Caught invalid data exception for calendar data. This usually indicates invalid calendar data. calendar-id:'.$calendarId.' uri:'.$row['uri']
+						'exception' => $ex
 					]);
 					continue;
 				}
