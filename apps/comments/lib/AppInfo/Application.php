@@ -68,7 +68,7 @@ class Application extends App implements IBootstrap {
 			LoadSidebarScripts::class
 		);
 		$context->registerEventListener(
-			CommentsEntityEvent::EVENT_ENTITY,
+			CommentsEntityEvent::class,
 			CommentsEntityEventListener::class
 		);
 		$context->registerSearchProvider(CommentsSearchProvider::class);

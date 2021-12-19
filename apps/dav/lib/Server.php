@@ -36,6 +36,7 @@ namespace OCA\DAV;
 
 use OC\Authentication\TwoFactorAuth\Manager as TwoFactorAuthManager;
 use OC\Security\Bruteforce\Throttler;
+use OCA\DAV\Events\SabreAddPluginEvent;
 use OCP\App\IAppManager;
 use OCP\Comments\ICommentsManager;
 use OCP\Files\IRootFolder;
@@ -85,7 +86,6 @@ use OCA\DAV\SystemTag\SystemTagPlugin;
 use OCA\DAV\Upload\ChunkingPlugin;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IRequest;
-use OCP\SabrePluginEvent;
 use Sabre\CardDAV\VCFExportPlugin;
 use Sabre\DAV\Auth\Plugin;
 use Sabre\DAV\UUIDUtil;
@@ -136,8 +136,6 @@ class Server {
 		$this->server->addPlugin($authPlugin);
 
 		// allow setup of additional auth backends
-		$event = new SabrePluginEvent($this->server);
-		$dispatcher->dispatch('OCA\DAV\Connector\Sabre::authInit', $event);
 
 		$newAuthEvent = new SabrePluginAuthInitEvent($this->server);
 		$newDispatcher->dispatchTyped($newAuthEvent);
@@ -224,6 +222,8 @@ class Server {
 		$this->server->addPlugin(new ChunkingPlugin());
 
 		// allow setup of additional plugins
+		$newDispatcher->dispatchTyped(new SabreAddPluginEvent($this->server));
+		$event = new \OCP\SabrePluginEvent($this->server);
 		$dispatcher->dispatch('OCA\DAV\Connector\Sabre::addPlugin', $event);
 
 		// Some WebDAV clients do require Class 2 WebDAV support (locking), since
