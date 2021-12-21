@@ -31,12 +31,28 @@ use Sabre\DAV\PropertyStorage\Backend\BackendInterface;
 use Sabre\DAV\PropFind;
 use Sabre\DAV\PropPatch;
 use Sabre\DAV\Tree;
+use Sabre\DAV\Xml\Property\Complex;
 use function array_intersect;
 
 class CustomPropertiesBackend implements BackendInterface {
 
 	/** @var string */
 	private const TABLE_NAME = 'properties';
+
+	/**
+	 * Value is stored as string.
+	 */
+	public const PROPERTY_TYPE_STRING = 1;
+
+	/**
+	 * Value is stored as XML fragment.
+	 */
+	public const PROPERTY_TYPE_XML = 2;
+
+	/**
+	 * Value is stored as a property object.
+	 */
+	public const PROPERTY_TYPE_OBJECT = 3;
 
 	/**
 	 * Ignored properties
@@ -217,7 +233,7 @@ class CustomPropertiesBackend implements BackendInterface {
 		$result = $qb->executeQuery();
 		$props = [];
 		while ($row = $result->fetch()) {
-			$props[$row['propertyname']] = $row['propertyvalue'];
+			$props[$row['propertyname']] = $this->decodeValueFromDatabase($row['propertyvalue'], $row['valuetype']);
 		}
 		$result->closeCursor();
 		return $props;
@@ -260,7 +276,7 @@ class CustomPropertiesBackend implements BackendInterface {
 
 		$props = [];
 		while ($row = $result->fetch()) {
-			$props[$row['propertyname']] = $row['propertyvalue'];
+			$props[$row['propertyname']] = $this->decodeValueFromDatabase($row['propertyvalue'], $row['valuetype']);
 		}
 
 		$result->closeCursor();
@@ -282,9 +298,9 @@ class CustomPropertiesBackend implements BackendInterface {
 			' WHERE `userid` = ? AND `propertypath` = ? AND `propertyname` = ?';
 
 		$insertStatement = 'INSERT INTO `*PREFIX*properties`' .
-			' (`userid`,`propertypath`,`propertyname`,`propertyvalue`) VALUES(?,?,?,?)';
+			' (`userid`,`propertypath`,`propertyname`,`propertyvalue`, `valuetype`) VALUES(?,?,?,?,?)';
 
-		$updateStatement = 'UPDATE `*PREFIX*properties` SET `propertyvalue` = ?' .
+		$updateStatement = 'UPDATE `*PREFIX*properties` SET `propertyvalue` = ?, `valuetype` = ?' .
 			' WHERE `userid` = ? AND `propertypath` = ? AND `propertyname` = ?';
 
 		// TODO: use "insert or update" strategy ?
@@ -303,24 +319,27 @@ class CustomPropertiesBackend implements BackendInterface {
 					);
 				}
 			} else {
+				[$value, $valueType] = $this->encodeValueForDatabase($propertyValue);
 				if (!array_key_exists($propertyName, $existing)) {
 					$this->connection->executeUpdate($insertStatement,
-						[
-							$this->user->getUID(),
-							$this->formatPath($path),
-							$propertyName,
-							$propertyValue,
-						]
-					);
+							[
+								$this->user->getUID(),
+								$this->formatPath($path),
+								$propertyName,
+								$value,
+								$valueType
+							]
+						);
 				} else {
 					$this->connection->executeUpdate($updateStatement,
-						[
-							$propertyValue,
-							$this->user->getUID(),
-							$this->formatPath($path),
-							$propertyName,
-						]
-					);
+							[
+								$value,
+								$valueType,
+								$this->user->getUID(),
+								$this->formatPath($path),
+								$propertyName,
+							]
+						);
 				}
 			}
 		}
@@ -340,8 +359,38 @@ class CustomPropertiesBackend implements BackendInterface {
 	private function formatPath(string $path): string {
 		if (strlen($path) > 250) {
 			return sha1($path);
+		}
+
+		return $path;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return array
+	 */
+	private function encodeValueForDatabase($value): array {
+		if (is_scalar($value)) {
+			$valueType = self::PROPERTY_TYPE_STRING;
+		} elseif ($value instanceof Complex) {
+			$valueType = self::PROPERTY_TYPE_XML;
+			$value = $value->getXml();
 		} else {
-			return $path;
+			$valueType = self::PROPERTY_TYPE_OBJECT;
+			$value = serialize($value);
+		}
+		return [$value, $valueType];
+	}
+
+	private function decodeValueFromDatabase(string $value, int $valueType) {
+		switch ($valueType) {
+			case self::PROPERTY_TYPE_XML:
+				return new Complex($value);
+			case self::PROPERTY_TYPE_OBJECT:
+				return unserialize($value);
+			case null:
+			case self::PROPERTY_TYPE_STRING:
+			default:
+				return $value;
 		}
 	}
 }
