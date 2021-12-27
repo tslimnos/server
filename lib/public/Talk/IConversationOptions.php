@@ -32,6 +32,14 @@ use OCP\IUser;
  */
 interface IConversationOptions {
 
-	public function setOwner(IUser $user): self;
+	/**
+	 * Make the new conversation public
+	 *
+	 * @param bool $isPublic
+	 *
+	 * @return $this
+	 * @since 24.0.0
+	 */
+	public function setPublic(bool $isPublic = true): self;
 
 }

@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCP\Talk;
 
+use OCP\IUser;
 use OCP\Talk\Exceptions\NoBackendException;
 
 /**
@@ -54,13 +55,21 @@ interface IBroker {
 	public function newConversationOptions(): IConversationOptions;
 
 	/**
+	 * Create a new conversation
+	 *
+	 * The conversation is private by default. Use the options parameter to make
+	 * it public.
+	 *
 	 * @param string $name
+	 * @param IUser $moderators
 	 * @param IConversationOptions|null $options optional configuration for the conversation
 	 *
 	 * @return IConversation
 	 * @throws NoBackendException when Talk is not available
 	 * @since 24.0.0
 	 */
-	public function createPublicConversation(string $name, IConversationOptions $options = null): IConversation;
+	public function createConversation(string $name,
+									   array $moderators = [],
+									   IConversationOptions $options = null): IConversation;
 
 }
