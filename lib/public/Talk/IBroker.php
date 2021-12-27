@@ -61,7 +61,7 @@ interface IBroker {
 	 * it public.
 	 *
 	 * @param string $name
-	 * @param IUser $moderators
+	 * @param IUser[] $moderators
 	 * @param IConversationOptions|null $options optional configuration for the conversation
 	 *
 	 * @return IConversation

@@ -25,6 +25,8 @@ declare(strict_types=1);
 
 namespace OCP\Talk;
 
+use OCP\IUser;
+
 /**
  * Interface for the Talk app to implement
  *
@@ -32,16 +34,20 @@ namespace OCP\Talk;
  * broker instead
  *
  * @see IBroker
+ * @since 24.0.0
  */
 interface ITalkBackend {
 
 	/**
 	 * @param string $name
+	 * @param IUser[] $moderators
 	 * @param IConversationOptions|null $options optional configuration for the conversation
 	 *
 	 * @return IConversation
 	 * @since 24.0.0
 	 */
-	public function createPublicConversation(string $name, IConversationOptions $options = null): IConversation;
+	public function createConversation(string $name,
+									   array $moderators = [],
+									   IConversationOptions $options = null): IConversation;
 
 }
