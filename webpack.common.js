@@ -116,7 +116,6 @@ module.exports = {
 				test: /\.handlebars/,
 				loader: 'handlebars-loader',
 			},
-
 		],
 	},
 
@@ -142,7 +141,6 @@ module.exports = {
 		new ESLintPlugin(),
 		new webpack.ProvidePlugin({
 			_: 'underscore',
-			$: 'jquery',
 			jQuery: 'jquery',
 		}),
 	],
