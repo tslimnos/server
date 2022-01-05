@@ -41,17 +41,69 @@ class FunctionBuilderTest extends TestCase {
 		$this->connection = \OC::$server->getDatabaseConnection();
 	}
 
-	public function testConcat() {
+	/**
+	 * @dataProvider providerTestConcatString
+	 */
+	public function testConcatString($closure) {
 		$query = $this->connection->getQueryBuilder();
+		[$real, $arguments, $return] = $closure($query);
+		if ($real) {
+			$this->addDummyData();
+		}
 
-		$query->select($query->func()->concat($query->createNamedParameter('foo'), new Literal("'bar'")));
+		$query->select($query->func()->concat(...$arguments));
 		$query->from('appconfig')
 			->setMaxResults(1);
 
 		$result = $query->execute();
 		$column = $result->fetchOne();
 		$result->closeCursor();
-		$this->assertEquals('foobar', $column);
+		$this->assertEquals($return, $column);
+	}
+
+	public function providerTestConcatString(): array {
+		return [
+			'1 column: string literal possible sql injection' =>
+				[function ($q) {
+					return [false, [$q->expr()->literal("'\\,".chr(8).chr(13))], '\'\\,'.chr(8).chr(13)];
+				}],
+			'1 column: string param possible sql injection' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter("'\\,".chr(8).chr(13))], '\'\\,'.chr(8).chr(13)];
+				}],
+			'1 column: string param unicode' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter('👍')], '👍'];
+				}],
+			'1 column: string parameter possible sql injection' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter("'\\,".chr(8).chr(13))], '\'\\,'.chr(8).chr(13)];
+				}],
+			'2 columns: string param and string param' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter('foo'), $q->createNamedParameter('bar')], 'foobar'];
+				}],
+			'2 columns: string param and int literal' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter('foo'), $q->expr()->literal(1)], 'foo1'];
+				}],
+			'2 columns: string param and string literal' =>
+				[function ($q) {
+					return [false, [$q->createNamedParameter('foo'), $q->expr()->literal('bar')], 'foobar'];
+				}],
+			'2 columns: string real and int literal' =>
+				[function ($q) {
+					return [true, ['configkey', $q->expr()->literal(2)], '12'];
+				}],
+			'4 columns: string literal' =>
+				[function ($q) {
+					return [false, [$q->expr()->literal('foo'), $q->expr()->literal('bar'), $q->expr()->literal('foo'), $q->expr()->literal('bar')], 'foobarfoobar'];
+				}],
+			'4 columns: int literal' =>
+				[function ($q) {
+					return [false, [$q->expr()->literal(1), $q->expr()->literal(2), $q->expr()->literal(3), $q->expr()->literal(4)], '1234'];
+				}],
+		];
 	}
 
 	protected function clearDummyData(): void {
